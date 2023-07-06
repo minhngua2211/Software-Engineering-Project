@@ -13,16 +13,33 @@ LANEWIDTH = 60
 OBWIDTH = 56
 OBHEIGHT = 56
 
+#Figures of gas
+GASWIDTH = 40
+GASHEIGHT = 40
+GASIMG = pygame.image.load('image/gas-station.png')
+GASIMG = pygame.transform.scale(GASIMG, (GASWIDTH, GASHEIGHT))
+TANKWIDTH = 40
+TANKHEIGHT = 400
+TANKIMG = pygame.image.load('image/rectangle.png')
+TANKIMG = pygame.transform.scale(TANKIMG, (TANKWIDTH, TANKHEIGHT))
+CONSUMELIMIT = 1000
+CONSUMEWIDTH = 35
+CONSUMEHEIGHT = 217 * CONSUMELIMIT/1000
+CONSIMG = pygame.image.load('image/Red.png')
+CONSIMG = pygame.transform.scale(CONSIMG, (CONSUMEWIDTH, CONSUMEHEIGHT))
+
+
+
 #Figures of car
 CARWIDTH = 40
 CARHEIGHT = 84
-CARSPEED = 3
+CARSPEED = 5
 CARIMG = pygame.image.load('image/car.png')
 
 #Other figures of obstacles
 DISTANCE = 200
-OBSTACLESSPEED = 2
-CHANGESPEED = 0.001
+OBSTACLESSPEED = 3
+CHANGESPEED = 0.005
 OBSTACLESIMG = pygame.image.load('image/Rock Pile.png')
 
 pygame.init()
@@ -31,10 +48,10 @@ FPS = 60
 fpsClock = pygame.time.Clock()
 
 DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
-pygame.display.set_caption('RACING')
+pygame.display.set_caption('Goat Motoracing Game')
 
 #Create backgound and scroll
-BGSPEED = 1.5
+BGSPEED = 3
 BGIMG = pygame.image.load('image/background.png')
 
 class Background():
@@ -52,6 +69,11 @@ class Background():
         self.y += self.speed
         if self.y > self.height:
             self.y -= self.height
+    def pump_brake(self, brake):
+        if brake == True:
+            self.speed = BGSPEED * 0.5
+        if brake == False:
+            self.speed = BGSPEED
 
 #create obstacles
 class Obstacles():
@@ -80,6 +102,29 @@ class Obstacles():
             y = self.ls[3][1] - self.distance
             lane = random.randint(0, 3)
             self.ls.append([lane, y])
+    def pump_brake(self, brake):
+        if brake == True:
+            self.speed = OBSTACLESSPEED * 0.5
+        if brake == False:
+            self.speed = OBSTACLESSPEED
+#Create gas tank
+class Gas():
+    def __init__(self):
+        self.gasX = 10
+        self.gasY = 50
+        self.gas_limit = CONSUMELIMIT
+    def draw(self):
+        DISPLAYSURF.blit(GASIMG, (self.gasX, self.gasY))
+        DISPLAYSURF.blit(TANKIMG, (self.gasX, self.gasY - 13))
+        DISPLAYSURF.blit(CONSIMG, (self.gasX + 3, self.gasY + 80))
+    def pump_brake(self, brake):
+        if brake == True:
+            global CONSUMELIMIT, CONSUMEHEIGHT, CONSUMEWIDTH, CONSIMG
+            CONSUMELIMIT -= 1
+            CONSUMEHEIGHT = 217 * CONSUMELIMIT/1000
+            CONSIMG = pygame.image.load('image/Red.png')
+            CONSIMG = pygame.transform.scale(CONSIMG, (CONSUMEWIDTH, CONSUMEHEIGHT))
+
 
 #Create car
 class Car():
@@ -93,15 +138,11 @@ class Car():
         self.surface.fill((255, 255, 255))
     def draw(self):
         DISPLAYSURF.blit(CARIMG, (int(self.x), int(self.y)))
-    def update(self, moveLeft, moveRight, moveUp):
+    def update(self, moveLeft, moveRight):
         if moveLeft == True:
             self.x -= self.speed
         if moveRight == True:
-            self.x += self.speed
-        if moveUp == True:
-            self.y -= self.speed
-        
-        
+            self.x += self.speed        
         if self.x < X_MARGIN:
             self.x = X_MARGIN
         if self.x + self.width > WINDOWWIDTH - X_MARGIN:
@@ -130,6 +171,9 @@ def rectCollision(rect1, rect2):
 
 #Lose game
 def isGameover(car, obstacles):
+    global CONSUMELIMIT
+    if CONSUMELIMIT == 0:
+        return True
     carRect = [car.x, car.y, car.width, car.height]
     for i in range(5):
         x = int(X_MARGIN + obstacles.ls[i][0]*LANEWIDTH + (LANEWIDTH-obstacles.width)/2)
@@ -164,14 +208,15 @@ def gameStart(bg):
         fpsClock.tick(FPS)
 
 #
-def gamePlay(bg, car, obstacles, score):
+def gamePlay(bg, car, obstacles, score, gas):
     car.__init__()
     obstacles.__init__()
     bg.__init__()
     score.__init__()
+    gas.__init__()
     moveLeft = False
     moveRight = False
-    moveUp = False
+    brake = False
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -182,31 +227,36 @@ def gamePlay(bg, car, obstacles, score):
                     moveLeft = True
                 if event.key == K_RIGHT:
                     moveRight = True
-                if event.key == K_UP:
-                    moveUp = True
+                if event.key == K_DOWN:
+                    brake = True
                 
             if event.type == KEYUP:
                 if event.key == K_LEFT:
                     moveLeft = False
                 if event.key == K_RIGHT:
                     moveRight = False
-                if event.key == K_UP:
-                    moveUp = False
+                if event.key == K_DOWN:
+                    brake = False
                 
         if isGameover(car, obstacles):
             return
         bg.draw()
         bg.update()
+        bg.pump_brake(brake)
         car.draw()
-        car.update(moveLeft, moveRight, moveUp)
+        car.update(moveLeft, moveRight)
+        gas.draw()
+        gas.pump_brake(brake)
         obstacles.draw()
         obstacles.update()
+        obstacles.pump_brake(brake)
         score.draw()
         score.update()
         pygame.display.update()
         fpsClock.tick(FPS)
 # Build game over func
-def gameOver(bg, car, obstacles, score):
+def gameOver(bg, car, obstacles, score, gas):
+    global CONSUMELIMIT, CONSUMEHEIGHT, CONSUMEWIDTH, CONSIMG
     font = pygame.font.SysFont('consolas', 60)
     headingSuface = font.render('GAMEOVER', True, (255, 0, 0))
     headingSize = headingSuface.get_size()
@@ -221,11 +271,16 @@ def gameOver(bg, car, obstacles, score):
                 sys.exit()
             if event.type == pygame.KEYUP:
                 if event.key == K_SPACE:
+                    CONSUMELIMIT = 1000
+                    CONSUMEHEIGHT = 217 * CONSUMELIMIT/1000
+                    CONSIMG = pygame.image.load('image/Red.png')
+                    CONSIMG = pygame.transform.scale(CONSIMG, (CONSUMEWIDTH, CONSUMEHEIGHT))
                     return
         bg.draw()
         car.draw()
         obstacles.draw()
         score.draw()
+        gas.draw()
         DISPLAYSURF.blit(headingSuface, (int((WINDOWWIDTH - headingSize[0])/2), 100))
         DISPLAYSURF.blit(commentSuface, (int((WINDOWWIDTH - commentSize[0])/2), 400))
         pygame.display.update()
@@ -236,10 +291,11 @@ def main():
     car = Car()
     obstacles = Obstacles()
     score = Score()
+    gas = Gas()
     gameStart(bg)
     while True:
-        gamePlay(bg, car, obstacles, score)
-        gameOver(bg, car, obstacles, score)
+        gamePlay(bg, car, obstacles, score, gas)
+        gameOver(bg, car, obstacles, score, gas)
 
 if __name__ == '__main__':
     main()
