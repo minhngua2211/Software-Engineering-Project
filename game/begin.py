@@ -30,11 +30,12 @@ CONSIMG = pygame.transform.scale(CONSIMG, (CONSUMEWIDTH, CONSUMEHEIGHT))
 
 
 
-#Figures of car
-CARWIDTH = 40
-CARHEIGHT = 84
-CARSPEED = 5
-CARIMG = pygame.image.load('image/car.png')
+#Figures of bike
+BIKEWIDTH = 50
+BIKEHEIGHT = 90
+BIKESPEED = 5
+BIKEIMG = pygame.image.load('image/motorcycle.png')
+BIKEIMG = pygame.transform.scale(BIKEIMG, (BIKEWIDTH, BIKEHEIGHT))
 
 #Other figures of obstacles
 DISTANCE = 200
@@ -120,24 +121,24 @@ class Gas():
     def pump_brake(self, brake):
         if brake == True:
             global CONSUMELIMIT, CONSUMEHEIGHT, CONSUMEWIDTH, CONSIMG
-            CONSUMELIMIT -= 1
+            CONSUMELIMIT -= 2
             CONSUMEHEIGHT = 217 * CONSUMELIMIT/1000
             CONSIMG = pygame.image.load('image/Red.png')
             CONSIMG = pygame.transform.scale(CONSIMG, (CONSUMEWIDTH, CONSUMEHEIGHT))
 
 
 #Create car
-class Car():
+class Bike():
     def __init__(self):
-        self.width = CARWIDTH
-        self.height = CARHEIGHT
+        self.width = BIKEWIDTH
+        self.height = BIKEHEIGHT
         self.x = (WINDOWWIDTH-self.width)/2
         self.y = (WINDOWHEIGHT-self.height)/0.25
-        self.speed = CARSPEED
+        self.speed = BIKESPEED
         self.surface = pygame.Surface((self.width, self.height))
         self.surface.fill((255, 255, 255))
     def draw(self):
-        DISPLAYSURF.blit(CARIMG, (int(self.x), int(self.y)))
+        DISPLAYSURF.blit(BIKEIMG, (int(self.x), int(self.y)))
     def update(self, moveLeft, moveRight):
         if moveLeft == True:
             self.x -= self.speed
@@ -189,7 +190,6 @@ def gameStart(bg):
     font = pygame.font.SysFont('consolas', 60)
     headingSuface = font.render('RACING', True, (255, 0, 0))
     headingSize = headingSuface.get_size()
-
     font = pygame.font.SysFont('consolas', 20)
     commentSuface = font.render('Press "space" to play', True, (0, 0, 0))
     commentSize = commentSuface.get_size()
@@ -208,8 +208,8 @@ def gameStart(bg):
         fpsClock.tick(FPS)
 
 #
-def gamePlay(bg, car, obstacles, score, gas):
-    car.__init__()
+def gamePlay(bg, bike, obstacles, score, gas):
+    bike.__init__()
     obstacles.__init__()
     bg.__init__()
     score.__init__()
@@ -218,6 +218,11 @@ def gamePlay(bg, car, obstacles, score, gas):
     moveRight = False
     brake = False
     while True:
+        global CONSUMELIMIT, CONSUMEHEIGHT, CONSUMEWIDTH, CONSIMG
+        CONSUMELIMIT -= 0.5
+        CONSUMEHEIGHT = 217 * CONSUMELIMIT/1000
+        CONSIMG = pygame.image.load('image/Red.png')
+        CONSIMG = pygame.transform.scale(CONSIMG, (CONSUMEWIDTH, CONSUMEHEIGHT))
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -238,13 +243,13 @@ def gamePlay(bg, car, obstacles, score, gas):
                 if event.key == K_DOWN:
                     brake = False
                 
-        if isGameover(car, obstacles):
+        if isGameover(bike, obstacles):
             return
         bg.draw()
         bg.update()
         bg.pump_brake(brake)
-        car.draw()
-        car.update(moveLeft, moveRight)
+        bike.draw()
+        bike.update(moveLeft, moveRight)
         gas.draw()
         gas.pump_brake(brake)
         obstacles.draw()
@@ -255,7 +260,7 @@ def gamePlay(bg, car, obstacles, score, gas):
         pygame.display.update()
         fpsClock.tick(FPS)
 # Build game over func
-def gameOver(bg, car, obstacles, score, gas):
+def gameOver(bg, bike, obstacles, score, gas):
     global CONSUMELIMIT, CONSUMEHEIGHT, CONSUMEWIDTH, CONSIMG
     font = pygame.font.SysFont('consolas', 60)
     headingSuface = font.render('GAMEOVER', True, (255, 0, 0))
@@ -277,7 +282,7 @@ def gameOver(bg, car, obstacles, score, gas):
                     CONSIMG = pygame.transform.scale(CONSIMG, (CONSUMEWIDTH, CONSUMEHEIGHT))
                     return
         bg.draw()
-        car.draw()
+        bike.draw()
         obstacles.draw()
         score.draw()
         gas.draw()
@@ -288,14 +293,14 @@ def gameOver(bg, car, obstacles, score, gas):
 #Running 
 def main():
     bg = Background()
-    car = Car()
+    bike = Bike()
     obstacles = Obstacles()
     score = Score()
     gas = Gas()
     gameStart(bg)
     while True:
-        gamePlay(bg, car, obstacles, score, gas)
-        gameOver(bg, car, obstacles, score, gas)
+        gamePlay(bg, bike, obstacles, score, gas)
+        gameOver(bg, bike, obstacles, score, gas)
 
 if __name__ == '__main__':
     main()
