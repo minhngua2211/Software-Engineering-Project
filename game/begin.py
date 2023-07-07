@@ -121,7 +121,10 @@ class Gas():
     def pump_brake(self, brake):
         if brake == True:
             global CONSUMELIMIT, CONSUMEHEIGHT, CONSUMEWIDTH, CONSIMG
-            CONSUMELIMIT -= 2
+            if CONSUMELIMIT < 2:
+                CONSUMELIMIT = 0
+            else:
+                 CONSUMELIMIT -= 2
             CONSUMEHEIGHT = 217 * CONSUMELIMIT/1000
             CONSIMG = pygame.image.load('image/Red.png')
             CONSIMG = pygame.transform.scale(CONSIMG, (CONSUMEWIDTH, CONSUMEHEIGHT))
@@ -220,7 +223,10 @@ def gamePlay(bg, bike, obstacles, score, gas):
     brake = False
     while True:
         global CONSUMELIMIT, CONSUMEHEIGHT, CONSUMEWIDTH, CONSIMG
-        CONSUMELIMIT -= 0.5
+        if CONSUMELIMIT < 0.5:
+            CONSUMELIMIT = 0
+        else:
+            CONSUMELIMIT -= 0.5
         CONSUMEHEIGHT = 217 * CONSUMELIMIT/1000
         CONSIMG = pygame.image.load('image/Red.png')
         CONSIMG = pygame.transform.scale(CONSIMG, (CONSUMEWIDTH, CONSUMEHEIGHT))
@@ -290,7 +296,6 @@ def gameOver(bg, bike, obstacles, score, gas):
         DISPLAYSURF.blit(headingSuface, (int((WINDOWWIDTH - headingSize[0])/2), 100))
         DISPLAYSURF.blit(commentSuface, (int((WINDOWWIDTH - commentSize[0])/2), 400))
         pygame.display.update()
-        fpsClock.tick(FPS)
 #Running 
 def main():
     bg = Background()
