@@ -193,10 +193,12 @@ def gameStart(bg):
     font = pygame.font.SysFont('consolas', 60)
     headingSuface = font.render('RACING', True, (255, 0, 0))
     headingSize = headingSuface.get_size()
-
     font = pygame.font.SysFont('consolas', 20)
-    commentSuface = font.render('Press "space" to play', True, (0, 0, 0))
-    commentSize = commentSuface.get_size()
+    startSurface = font.render('Start', True, (0, 0, 0))
+    exitSurface = font.render('Exit', True, (0, 0, 0))
+    startSize = startSurface.get_size()
+    exitSize = exitSurface.get_size()
+    selected = "start"
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -204,10 +206,33 @@ def gameStart(bg):
                 sys.exit()
             if event.type == pygame.KEYUP:
                 if event.key == K_SPACE:
-                    return
+                    if selected == "start":
+                        return
+                    elif selected == "exit":
+                        pygame.quit()
+                        sys.exit()
+                elif event.key == K_UP or event.key == K_DOWN:
+                    if selected == "start":
+                        selected = "exit"
+                    elif selected == "exit":
+                        selected = "start"
         bg.draw()
         DISPLAYSURF.blit(headingSuface, (int((WINDOWWIDTH - headingSize[0])/2), 100))
-        DISPLAYSURF.blit(commentSuface, (int((WINDOWWIDTH - commentSize[0])/2), 400))
+        if selected == "start":
+            pygame.draw.rect(DISPLAYSURF, (0, 255, 0), ((int((WINDOWWIDTH - startSize[0]) / 2) - 10, 200 - 10),
+                                                         (startSize[0] + 20, startSize[1] + 20)))
+        else:
+            pygame.draw.rect(DISPLAYSURF, (255, 255, 255), ((int((WINDOWWIDTH - startSize[0]) / 2) - 10, 200 - 10),
+                                                             (startSize[0] + 20, startSize[1] + 20)))
+        DISPLAYSURF.blit(startSurface, (int((WINDOWWIDTH - startSize[0]) / 2), 200))
+
+        if selected == "exit":
+            pygame.draw.rect(DISPLAYSURF, (0, 255, 0), ((int((WINDOWWIDTH - exitSize[0]) / 2) - 10, 300 - 10),
+                                                         (exitSize[0] + 20, exitSize[1] + 20)))
+        else:
+            pygame.draw.rect(DISPLAYSURF, (255, 255, 255), ((int((WINDOWWIDTH - exitSize[0]) / 2) - 10, 300 - 10),
+                                                             (exitSize[0] + 20, exitSize[1] + 20)))
+        DISPLAYSURF.blit(exitSurface, (int((WINDOWWIDTH - exitSize[0]) / 2), 300))
         pygame.display.update()
         fpsClock.tick(FPS)
 
@@ -274,7 +299,7 @@ def gameOver(bg, bike, obstacles, score, gas):
     headingSize = headingSuface.get_size()
 
     font = pygame.font.SysFont('consolas', 20)
-    commentSuface = font.render('Press "space" to replay', True, (0, 0, 0))
+    commentSuface = font.render('Press Space to return', True, (0, 0, 0))
     commentSize = commentSuface.get_size()
     while True:
         for event in pygame.event.get():
@@ -287,6 +312,7 @@ def gameOver(bg, bike, obstacles, score, gas):
                     CONSUMEHEIGHT = 217 * CONSUMELIMIT/1000
                     CONSIMG = pygame.image.load('image/Red.png')
                     CONSIMG = pygame.transform.scale(CONSIMG, (CONSUMEWIDTH, CONSUMEHEIGHT))
+                    gameStart(bg)
                     return
         bg.draw()
         bike.draw()
