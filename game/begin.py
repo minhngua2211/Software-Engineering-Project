@@ -166,6 +166,8 @@ class Score():
         DISPLAYSURF.blit(scoreSuface, (10, 10))
     def update(self):
         self.score += 0.02
+    def get_score(self):
+        return self.score
 
 #Handle collistion
 def rectCollision(rect1, rect2):
@@ -190,8 +192,8 @@ def isGameover(bike, obstacles):
 #Build Start function
 def gameStart(bg):
     bg.__init__()
-    font = pygame.font.SysFont('consolas', 60)
-    headingSuface = font.render('RACING', True, (255, 0, 0))
+    font = pygame.font.SysFont('consolas', 40)
+    headingSuface = font.render('GOAT RACING GAME', True, (255, 0, 0))
     headingSize = headingSuface.get_size()
     font = pygame.font.SysFont('consolas', 20)
     startSurface = font.render('Start', True, (0, 0, 0))
@@ -294,10 +296,12 @@ def gamePlay(bg, bike, obstacles, score, gas):
 # Build game over func
 def gameOver(bg, bike, obstacles, score, gas):
     global CONSUMELIMIT, CONSUMEHEIGHT, CONSUMEWIDTH, CONSIMG
-    font = pygame.font.SysFont('consolas', 60)
+    font = pygame.font.SysFont('consolas', 50)
     headingSuface = font.render('GAMEOVER', True, (255, 0, 0))
     headingSize = headingSuface.get_size()
-
+    font = pygame.font.SysFont('consolas', 30)
+    scoreSurface = font.render('Your Score is: ' + str(int(score.get_score())), True, (255, 0, 0))
+    scoreSize = scoreSurface.get_size()
     font = pygame.font.SysFont('consolas', 20)
     commentSuface = font.render('Press Space to return', True, (0, 0, 0))
     commentSize = commentSuface.get_size()
@@ -320,6 +324,7 @@ def gameOver(bg, bike, obstacles, score, gas):
         score.draw()
         gas.draw()
         DISPLAYSURF.blit(headingSuface, (int((WINDOWWIDTH - headingSize[0])/2), 100))
+        DISPLAYSURF.blit(scoreSurface, (int((WINDOWWIDTH - scoreSize[0])/2), 200))
         DISPLAYSURF.blit(commentSuface, (int((WINDOWWIDTH - commentSize[0])/2), 400))
         pygame.display.update()
 #Running 
